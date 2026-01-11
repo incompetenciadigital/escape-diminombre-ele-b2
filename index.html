@@ -1,0 +1,888 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Escape Game – Amnesia (ELE B2)</title>
+  <style>
+    :root{
+      --bg: #0b0f16;
+      --panel: #121a26;
+      --panel2:#0f1520;
+      --text: #e8eefc;
+      --muted:#a7b3d6;
+      --ok:#33d17a;
+      --bad:#ff5c75;
+      --warn:#ffcc66;
+      --line:#26324a;
+      --accent:#7aa2ff;
+      --accent2:#b58bff;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    }
+    *{ box-sizing: border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0; font-family: var(--sans);
+      background: radial-gradient(1200px 800px at 30% 0%, rgba(122,162,255,.18), transparent 60%),
+                  radial-gradient(900px 700px at 85% 30%, rgba(181,139,255,.16), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+    a{ color:var(--accent); }
+    .wrap{ max-width: 1040px; margin: 0 auto; padding: 22px 16px 60px; }
+    header{
+      display:flex; gap:14px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;
+      margin-bottom: 16px;
+    }
+    .brand{
+      display:flex; flex-direction:column; gap:6px;
+    }
+    .title{
+      font-size: 22px; font-weight: 800; letter-spacing:.2px;
+    }
+    .subtitle{ color:var(--muted); font-size: 13.5px; line-height:1.35; max-width: 70ch; }
+    .toolbar{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;
+    }
+    .pill{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      padding:8px 10px; border-radius: 999px;
+      display:flex; gap:10px; align-items:center;
+      box-shadow: var(--shadow);
+    }
+    .pill b{ font-size: 13px; }
+    .pill span{ color:var(--muted); font-size: 12px; }
+    button{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color:var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      box-shadow: var(--shadow);
+      transition: transform .06s ease, background .2s ease;
+      font-weight: 650;
+    }
+    button:hover{ background: rgba(255,255,255,.07); }
+    button:active{ transform: translateY(1px); }
+    button.primary{
+      background: linear-gradient(135deg, rgba(122,162,255,.22), rgba(181,139,255,.18));
+      border-color: rgba(122,162,255,.45);
+    }
+    button.danger{ border-color: rgba(255,92,117,.5); }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 14px;
+      margin-top: 12px;
+    }
+    @media (max-width: 920px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding: 14px 16px;
+      border-bottom:1px solid var(--line);
+      background: rgba(0,0,0,.14);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .card .hd .h{
+      display:flex; flex-direction:column; gap:3px;
+    }
+    .card .hd .h .k{
+      font-weight: 900; letter-spacing:.2px;
+      display:flex; gap:8px; align-items:center;
+    }
+    .tag{
+      font-size: 11px; color: var(--muted);
+      border:1px solid var(--line);
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.03);
+    }
+    .card .bd{ padding: 16px; }
+    .muted{ color:var(--muted); }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .hr{ height:1px; background: var(--line); margin: 14px 0; }
+    .progress{
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    }
+    .bar{
+      flex:1;
+      min-width: 220px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--line);
+      overflow:hidden;
+    }
+    .bar > div{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, rgba(51,209,122,.9), rgba(122,162,255,.9));
+      transition: width .25s ease;
+    }
+    .chips{ display:flex; flex-wrap:wrap; gap:8px; }
+    .chip{
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      font-size: 12px;
+      color: var(--muted);
+      display:flex; gap:8px; align-items:center;
+    }
+    .chip.ok{ color: rgba(51,209,122,.95); border-color: rgba(51,209,122,.35); background: rgba(51,209,122,.08); }
+    .chip.lock{ color: rgba(255,204,102,.95); border-color: rgba(255,204,102,.35); background: rgba(255,204,102,.08); }
+    .panel{
+      border:1px dashed rgba(122,162,255,.35);
+      background: rgba(122,162,255,.07);
+      border-radius: 14px;
+      padding: 12px;
+      margin: 10px 0;
+    }
+    .q{
+      font-weight: 800;
+      margin: 10px 0 6px;
+      letter-spacing:.1px;
+    }
+    .hint{
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    input, textarea, select{
+      width:100%;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      outline: none;
+      font-size: 14px;
+    }
+    textarea{ min-height: 92px; resize: vertical; }
+    .form{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 640px){
+      .form{ grid-template-columns: 1fr; }
+    }
+    .msg{
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .msg.ok{ border-color: rgba(51,209,122,.4); background: rgba(51,209,122,.08); color: rgba(51,209,122,.95); }
+    .msg.bad{ border-color: rgba(255,92,117,.5); background: rgba(255,92,117,.10); color: rgba(255,92,117,.95); }
+    .mono{ font-family: var(--mono); }
+    .lockscreen{
+      display:flex; flex-direction:column; gap:8px;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,204,102,.35);
+      background: rgba(255,204,102,.08);
+      color: rgba(255,204,102,.95);
+    }
+    .small{ font-size: 12px; }
+    details summary{
+      cursor:pointer;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    .footer{
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="title">Escape Game – Di mi nombre (ELE B2)</div>
+      <div class="subtitle">
+        Variedad: <b>español peninsular</b>. Juego de deducción e investigación periodística.
+        Recomendado: grupos de 2–4; un/a “máster del juego” por grupo.
+      </div>
+    </div>
+    <div class="toolbar">
+      <div class="pill">
+        <b>Misiones</b>
+        <span><span id="doneCount">0</span>/10</span>
+      </div>
+      <button class="primary" id="btnReset">Reiniciar progreso</button>
+      <button id="btnTeacher">Modo docente (soluciones)</button>
+    </div>
+  </header>
+
+  <div class="card">
+    <div class="hd">
+      <div class="h">
+        <div class="k">Progreso del escape <span class="tag" id="statusTag">En curso</span></div>
+        <div class="hint">Completa los enigmas en orden. Al acertar, se desbloquea el siguiente.</div>
+      </div>
+      <div class="progress" style="min-width:260px;">
+        <div class="bar"><div id="barFill"></div></div>
+      </div>
+    </div>
+    <div class="bd">
+      <div class="chips" id="chips"></div>
+      <div class="hr"></div>
+      <div class="panel">
+        <div class="q">Contexto</div>
+        <div class="hint">
+          Después de una noche de fiesta loca, te despiertas en una habitación de hotel sin recordar tu identidad. La puerta está cerrada con llave.
+          Tus amistades te han dejado solo o sola. Lo único que tienes es un móvil con Internet, pero... alguien se ha dejado un cuaderno con notas codificadas.
+          Resuelve los 10 enigmas para saber quién eres, qué has destapado y cómo salir.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <main class="card" id="mainCard">
+      <div class="hd">
+        <div class="h">
+          <div class="k" id="pTitle">Enigma 1 – Identidad perdida</div>
+          <div class="hint" id="pMeta">Tiempo sugerido: 5 min · Inferencia y juego de palabras</div>
+        </div>
+        <div class="row">
+          <button id="btnPrev">← Anterior</button>
+          <button class="primary" id="btnNext">Siguiente →</button>
+        </div>
+      </div>
+      <div class="bd" id="pBody"></div>
+    </main>
+
+    <aside class="card">
+      <div class="hd">
+        <div class="h">
+          <div class="k">Panel de aula (B2)</div>
+          <div class="hint">Roles, lengua objetivo y tarea final.</div>
+        </div>
+      </div>
+      <div class="bd">
+        <div class="q">Roles (recomendación)</div>
+        <div class="hint">
+          <b>Mánager</b> (gestiona tiempo), <b>Portavoz</b> (explica hipótesis), <b>Secretario/a</b> (anota),
+          <b>Verificador/a</b> (comprueba coherencia).
+        </div>
+        <div class="hr"></div>
+
+        <div class="q">Lengua objetivo</div>
+        <div class="hint">
+          Obliga al grupo a justificar: <span class="mono">«Creo que…», «Es probable que…», «Lo deduzco porque…», «Sin embargo…», «Por lo tanto…»</span>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="q">Tarea final (producción)</div>
+        <div class="hint">
+          Cuando escapéis: <b>redactad</b> una noticia breve (150–180 palabras) o <b>grabáis</b> un directo (1–2 min)
+          anunciando el escándalo y las pruebas. Usad registro periodístico y marcadores discursivos.
+        </div>
+
+        <div class="hr"></div>
+
+        <details id="teacherBox">
+          <summary>Soluciones (modo docente)</summary>
+          <div class="msg" id="teacherContent"></div>
+        </details>
+
+        <div class="footer">
+          Consejo: si quieres personalizar (nombre, ciudad, dirección, etc.), edita el objeto <span class="mono">CONFIG</span> en el código.
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+  // =========================
+  // CONFIGURACIÓN (editable)
+  // =========================
+  const CONFIG = {
+    // Puedes “españolizar” el nombre si te interesa, pero mantengo el original por coherencia.
+    answers: {
+      e1_fullname: "Rosalía Vila Tobella",
+      // Permite variante sin tildes:
+      e1_fullname_alt: "Rosalia Vila Tobella",
+
+      e2_birthdate: "23 de septiembre de 1992",
+      e2_birthdate_alt: "23 septiembre 1992",
+
+      e3_city: "Barcelona",
+      e3_country: "Barcelona",
+
+      e4_address_contains: [
+        "Carrer del Banys Vells",
+        "Ola Living Born",
+        "Estimar"
+      ],
+
+      e5_password: "magia",
+
+      e6_colors: ["rojo","azul","blanco","verde","amarillo","negro"],
+
+      e7_job: "Cantante-espía",
+
+      e8_anagrams: [
+        "corrupción","gobierno","desvío de fondos","cuentas","culpables",
+        "investigación","transferir","bancos","tribunal","pruebas"
+      ],
+
+      e9_sms: "no publiques el artículo. es demasiado peligroso. quieren detenerte.",
+      e9_sms_alt: "no publiques el articulo. es demasiado peligroso. quieren detenerte.",
+
+      e10_final: "la llave está en la ventilación",
+      e10_final_alt: "la llave esta en la ventilacion"
+    },
+
+    // Texto de pistas (puedes adaptar o enriquecer aquí)
+    hints: {
+      e1: "En el original había charadas visuales. Aquí lo hacemos textual: introduce el nombre completo que descubres al final del juego.",
+      e3: "Pistas sin imágenes: 1) Ciudad mediterránea. 2) Templo inacabado. 3) Dos lenguas en los carteles.",
+      e4: "Trabajad con Street View si el/la docente comparte la ubicación. Si no, usad la información que aparece al resolver el enigma.",
+      e6: "Código de 6 colores. En B2, justificad cada color con una bandera y el rasgo descrito.",
+      e10: "Observa la habitación: el mensaje final indica dónde buscar la llave."
+    }
+  };
+
+  // =========================
+  // ESTADO
+  // =========================
+  const LS_KEY = "escape_ele_b2_state_v1";
+  const state = loadState() ?? {
+    step: 1,
+    solved: Array(10).fill(false),
+    inputs: {}
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  // =========================
+  // UI RENDER
+  // =========================
+  const steps = [
+    { id:1, title:"Enigma 1 – Identidad perdida", meta:"5 min · Inferencia y juego de palabras" },
+    { id:2, title:"Enigma 2 – Fecha de nacimiento", meta:"3 min · Cultura general y deducción" },
+    { id:3, title:"Enigma 3 – Ciudad de origen", meta:"10 min · Hipótesis y conectores" },
+    { id:4, title:"Enigma 4 – Dirección exacta", meta:"7 min · Preposiciones y descripción espacial" },
+    { id:5, title:"Enigma 5 – Contraseña del portátil", meta:"10 min · Atención al detalle" },
+    { id:6, title:"Enigma 6 – Desbloqueo del móvil", meta:"7 min · Léxico de colores y justificación" },
+    { id:7, title:"Enigma 7 – Profesión", meta:"8 min · Inferencia léxica" },
+    { id:8, title:"Enigma 8 – Anagramas del caso", meta:"5 min · Léxico socio-político" },
+    { id:9, title:"Enigma 9 – SMS en la pantalla rota", meta:"10 min · Comprensión y registro" },
+    { id:10, title:"Enigma 10 – La salida", meta:"10 min · Observación y mensaje oculto" }
+  ];
+
+  function normalize(s){
+    return (s ?? "")
+      .toString()
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, ""); // quita tildes
+  }
+
+  function saveState(){
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+  }
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(LS_KEY);
+      if(!raw) return null;
+      return JSON.parse(raw);
+    }catch{ return null; }
+  }
+
+  function solvedCount(){
+    return state.solved.filter(Boolean).length;
+  }
+
+  function renderChips(){
+    const el = $("chips");
+    el.innerHTML = "";
+    steps.forEach((s, idx) => {
+      const chip = document.createElement("div");
+      chip.className = "chip " + (state.solved[idx] ? "ok" : (idx+1 <= unlockedUpTo() ? "" : "lock"));
+      chip.textContent = state.solved[idx] ? `✓ ${idx+1}` : (idx+1 <= unlockedUpTo() ? `• ${idx+1}` : `🔒 ${idx+1}`);
+      el.appendChild(chip);
+    });
+  }
+
+  function unlockedUpTo(){
+    // Se desbloquea en orden: hasta el primer no resuelto + 1
+    let upTo = 1;
+    for(let i=0;i<10;i++){
+      if(state.solved[i]) upTo = i+2;
+      else break;
+    }
+    return Math.min(10, upTo);
+  }
+
+  function updateTop(){
+    const done = solvedCount();
+    $("doneCount").textContent = String(done);
+    const pct = Math.round((done/10)*100);
+    $("barFill").style.width = pct + "%";
+    $("statusTag").textContent = done >= 6 ? (done === 10 ? "Escapado" : "Vais bien") : "En curso";
+  }
+
+  function renderTeacher(){
+    const done = solvedCount();
+    const msg = [
+      `<b>Soluciones clave</b><br>`,
+      `1) Nombre: <span class="mono">Rosalía Vila Tobella</span><br>`,
+      `2) Fecha: <span class="mono">23 de septiembre de 1992</span><br>`,
+      `3) Ciudad/país: <span class="mono">Barcelona (ciudad), España</span><br>`,
+      `4) Dirección: <span class="mono">Entre Estimar y Ola Living Born · Carrer de Sant Antoni dels Sombrerers 4, 08003 Ciutat Vella Barcelona, España</span><br>`,
+      `5) Contraseña: <span class="mono">MAGIA</span><br>`,
+      `6) Código colores: <span class="mono">rojo-azul-blanco-verde-amarillo-negro</span><br>`,
+      `7) Profesión: <span class="mono">cantante-espía</span><br>`,
+      `8) Anagramas: <span class="mono">corrupción, gobierno, desvío de fondos, cuentas, culpables, investigación, transferir, bancos, tribunal, pruebas</span><br>`,
+      `9) SMS: <span class="mono">No publiques el artículo. Es demasiado peligroso. Quieren detenerte.</span><br>`,
+      `10) Mensaje final: <span class="mono">La llave está en la ventilación</span><br><br>`,
+      `<b>Condición de victoria</b>: 6/10 o más (como el original). Ahora: <span class="mono">${done}/10</span>`
+    ].join("");
+    $("teacherContent").innerHTML = msg;
+  }
+
+  function canGo(step){
+    return step <= unlockedUpTo();
+  }
+
+  function renderStep(){
+    const step = state.step;
+    const s = steps[step-1];
+
+    $("pTitle").textContent = s.title;
+    $("pMeta").textContent = s.meta;
+
+    $("btnPrev").disabled = step === 1;
+    $("btnNext").disabled = step === 10 || !state.solved[step-1];
+
+    const locked = !canGo(step);
+    const container = $("pBody");
+
+    if(locked){
+      container.innerHTML = `
+        <div class="lockscreen">
+          <div><b>🔒 Enigma bloqueado</b></div>
+          <div class="small">Debéis resolver los enigmas anteriores para llegar aquí.</div>
+        </div>`;
+      return;
+    }
+
+    // Renders por enigma:
+    container.innerHTML = getStepHTML(step);
+
+    // Restaura inputs
+    restoreInputs(step);
+
+    // Handler de verificación
+    const btn = container.querySelector("[data-check]");
+    if(btn){
+      btn.addEventListener("click", () => checkStep(step));
+    }
+  }
+
+  function restoreInputs(step){
+    const body = $("pBody");
+    const stored = state.inputs["e"+step] ?? {};
+    body.querySelectorAll("input,textarea,select").forEach(inp => {
+      if(stored[inp.name] !== undefined) inp.value = stored[inp.name];
+      inp.addEventListener("input", () => {
+        const cur = state.inputs["e"+step] ?? {};
+        cur[inp.name] = inp.value;
+        state.inputs["e"+step] = cur;
+        saveState();
+      });
+    });
+  }
+
+  function setMessage(step, kind, html){
+    const el = $("pBody").querySelector(".msg");
+    el.className = "msg " + (kind || "");
+    el.innerHTML = html;
+  }
+
+  function markSolved(step){
+    state.solved[step-1] = true;
+    saveState();
+    renderAll();
+  }
+
+  function checkStep(step){
+    const body = $("pBody");
+    const get = (name) => body.querySelector(`[name="${name}"]`)?.value ?? "";
+    let ok = false;
+
+    if(step === 1){
+      const val = normalize(get("fullname"));
+      ok = (val === normalize(CONFIG.answers.e1_fullname) || val === normalize(CONFIG.answers.e1_fullname_alt));
+      ok ? markSolved(1) : null;
+      setMessage(1, ok ? "ok":"bad", ok
+        ? "✅ Identidad confirmada. Puedes pasar al siguiente enigma."
+        : "❌ No coincide. Revisa la ortografía y el orden (nombre + apellido 1 + apellido 2).");
+    }
+
+    if(step === 2){
+      const val = normalize(get("birthdate"));
+      ok = (val === normalize(CONFIG.answers.e2_birthdate) || val === normalize(CONFIG.answers.e2_birthdate_alt));
+      ok ? markSolved(2) : null;
+      setMessage(2, ok ? "ok":"bad", ok
+        ? "✅ Fecha confirmada."
+        : "❌ No es correcto. Pista: formato recomendado «19 de marzo de 1979».");
+    }
+
+    if(step === 3){
+      const city = normalize(get("city"));
+      const country = normalize(get("country"));
+      ok = (city === normalize(CONFIG.answers.e3_city) && country === normalize(CONFIG.answers.e3_country));
+      ok ? markSolved(3) : null;
+      setMessage(3, ok ? "ok":"bad", ok
+        ? "✅ Origen localizado."
+        : "❌ No coincide. Justificad con las pistas (ciudad mediterránea, templo inacabado, carteles en dos lenguas).");
+    }
+
+    if(step === 4){
+      const addr = normalize(get("address"));
+      const must = CONFIG.answers.e4_address_contains.every(p => normalize(addr).includes(normalize(p)));
+      ok = must;
+      ok ? markSolved(4) : null;
+      setMessage(4, ok ? "ok":"bad", ok
+        ? "✅ Dirección verificada."
+        : "❌ Falta información clave. Incluye al menos calle/avenida y el restaurante de referencia.");
+    }
+
+    if(step === 5){
+      const val = normalize(get("password"));
+      ok = (val === normalize(CONFIG.answers.e5_password));
+      ok ? markSolved(5) : null;
+      setMessage(5, ok ? "ok":"bad", ok
+        ? "✅ Contraseña correcta. El portátil se desbloquea."
+        : "❌ No. Pista: palabra de 5 letras.");
+    }
+
+    if(step === 6){
+      const raw = get("colors");
+      const parts = normalize(raw).split(/[-,; ]+/).filter(Boolean);
+      const want = CONFIG.answers.e6_colors.map(normalize);
+      ok = parts.length === 6 && want.every((w,i) => parts[i] === w);
+      ok ? markSolved(6) : null;
+      setMessage(6, ok ? "ok":"bad", ok
+        ? "✅ Móvil desbloqueado."
+        : "❌ Código incorrecto. Es un orden fijo de 6 colores separados por guiones.");
+    }
+
+    if(step === 7){
+      const val = normalize(get("job"));
+      ok = (val === normalize(CONFIG.answers.e7_job));
+      ok ? markSolved(7) : null;
+      setMessage(7, ok ? "ok":"bad", ok
+        ? "✅ Profesión identificada."
+        : "❌ No. Pista: la carpeta «TRABAJO» sugiere medios, investigación, reportajes.");
+    }
+
+    if(step === 8){
+      // Comprobación flexible: que el alumno escriba al menos 8/10 correctas (B2)
+      const text = normalize(get("anagrams"));
+      const lines = text.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+      const want = CONFIG.answers.e8_anagrams.map(normalize);
+      let score = 0;
+      for(const w of want){
+        if(lines.some(l => l === w)) score++;
+      }
+      ok = score >= 8;
+      if(ok) markSolved(8);
+      setMessage(8, ok ? "ok":"bad", ok
+        ? `✅ Bien. Has resuelto ${score}/10 anagramas (mínimo 8).`
+        : `❌ Aún no. Llevas ${score}/10. Intenta llegar a 8. (Consejo: revisa tildes/forma verbal).`);
+    }
+
+    if(step === 9){
+      const val = normalize(get("sms"));
+      ok = (val === normalize(CONFIG.answers.e9_sms) || val === normalize(CONFIG.answers.e9_sms_alt));
+      ok ? markSolved(9) : null;
+      setMessage(9, ok ? "ok":"bad", ok
+        ? "✅ Mensaje descifrado."
+        : "❌ No coincide. Son 3 frases cortas con punto.");
+    }
+
+    if(step === 10){
+      const val = normalize(get("final"));
+      ok = (val === normalize(CONFIG.answers.e10_final) || val === normalize(CONFIG.answers.e10_final_alt));
+      if(ok) markSolved(10);
+      setMessage(10, ok ? "ok":"bad", ok
+        ? "🎉 ✅ ¡Escapáis! La llave está en la ventilación. Pasad a la tarea final."
+        : "❌ No. Pista: «la llave» + lugar de la habitación.");
+    }
+  }
+
+  function getStepHTML(step){
+    const solved = state.solved[step-1];
+    const solveHint = solved ? "✅ Resuelto. Puedes avanzar." : "Aún no resuelto.";
+    if(step === 1){
+      return `
+        <div class="q">Qué ves en el cuaderno</div>
+        <div class="hint">
+          ${CONFIG.hints.e1}<br>
+          <b>Consigna (B2):</b> introducid el nombre completo y explicad oralmente por qué os encaja.
+        </div>
+        <div class="hr"></div>
+        <div class="form">
+          <div>
+            <label class="hint" for="fullname">Nombre completo</label>
+            <input id="fullname" name="fullname" placeholder="Ej.: Catalina García Pérez" />
+          </div>
+          <div>
+            <div class="hint"><b>Lengua objetivo</b></div>
+            <div class="msg">
+              Usad: <span class="mono">«Lo deduzco porque…»</span> / <span class="mono">«Tiene sentido ya que…»</span>
+            </div>
+          </div>
+        </div>
+        <div class="row" style="margin-top:12px;">
+          <button class="primary" data-check>Comprobar</button>
+          <span class="hint">${solveHint}</span>
+        </div>
+        <div class="msg">Introduce la respuesta y pulsa «Comprobar».</div>
+      `;
+    }
+
+    if(step === 2){
+      return `
+        <div class="q">Adivinanzas: ¿cuál es tu fecha de nacimiento?</div>
+        <div class="hint">
+          1) Fallecen Shakespeare y Cervantes → hoy es el día del libro y el día de la festividad de los enamorados en Cataluña.<br>
+          2) En el antiguo calendario romano era el séptimo mes del año.<br>
+          3) Año en que se celebraron Juegos Olímpicos en España.<br><br>
+          <b>Consigna (B2):</b> acordad una respuesta y redactad la fecha con el formato indicado.
+        </div>
+        <div class="hr"></div>
+        <label class="hint" for="birthdate">Fecha</label>
+        <input id="birthdate" name="birthdate" placeholder="Ej.: 23 de septiembre de 1992" />
+        <div class="row" style="margin-top:12px;">
+          <button class="primary" data-check>Comprobar</button>
+          <span class="hint">${solveHint}</span>
+        </div>
+        <div class="msg">Pista: «23» + mes séptimo en el antiguo calendario romano + «1992».</div>
+      `;
+    }
+
+    if(step === 3){
+      return `
+        <div class="q">Recuerdos de una ciudad</div>
+        <div class="hint">
+          ${CONFIG.hints.e3}<br><br>
+          <b>Consigna (B2):</b> escribid ciudad y país. Luego justificad con 2 conectores:
+          <span class="mono">por lo tanto</span>, <span class="mono">sin embargo</span>, <span class="mono">además</span>.
+        </div>
+        <div class="hr"></div>
+        <div class="form">
+          <div>
+            <label class="hint" for="city">Ciudad</label>
+            <input id="city" name="city" placeholder="Ciudad" />
+          </div>
+          <div>
+            <label class="hint" for="country">País</label>
+            <input id="country" name="country" placeholder="País" />
+          </div>
+        </div>
+        <div class="row" style="margin-top:12px;">
+          <button class="primary" data-check>Comprobar</button>
+          <span class="hint">${solveHint}</span>
+        </div>
+        <div class="msg">Consejo: pensad en una ciudad junto al Mediterráneo y que sea multilingüe.</div>
+      `;
+    }
+
+    if(step === 4){
+      return `
+        <div class="q">Localiza tu dirección exacta</div>
+        <div class="hint">
+          ${CONFIG.hints.e4}<br><br>
+          <b>Consigna (B2):</b> redactad una frase usando <b>al lado de</b>, <b>encima de</b> y <b>enfrente de</b>.
+          Luego pegad aquí la dirección completa.
+        </div>
+        <div class="hr"></div>
+        <label class="hint" for="address">Dirección (copia/pega o escribe)</label>
+        <textarea id="address" name="address" placeholder="Incluye: restaurante, avenida y código postal..."></textarea>
+        <div class="row" style="margin-top:12px;">
+          <button class="primary" data-check>Comprobar</button>
+          <span class="hint">${solveHint}</span>
+        </div>
+        <div class="msg">Se valida si contiene: «Estimar», «Carrer de Sant Antoni dels Sombrerers 4» y «08003 Barcelona».</div>
+      `;
+    }
+
+    if(step === 5){
+      return `
+        <div class="q">Contraseña del ordenador portátil</div>
+        <div class="hint">
+          Encuentras una flor seca y una cuadrícula. En el original se marcaban ciertas letras para revelar una palabra.<br>
+          <b>Consigna (B2):</b> escribe la palabra/contraseña resultante.
+        </div>
+        <div class="hr"></div>
+        <label class="hint" for="password">Contraseña</label>
+        <input id="password" name="password" placeholder="Palabra" />
+        <div class="row" style="margin-top:12px;">
+          <button class="primary" data-check>Comprobar</button>
+          <span class="hint">${solveHint}</span>
+        </div>
+        <div class="msg">Pista: en español, es una palabra asociada a lo inexplicable (5 letras).</div>
+      `;
+    }
+
+    if(step === 6){
+      return `
+        <div class="q">Desbloqueo del móvil: código de colores</div>
+        <div class="hint">
+          ${CONFIG.hints.e6}<br><br>
+          <b>Consigna (B2):</b> escribe 6 colores en orden, separados por guiones. Ej.: <span class="mono">rojo-azul-...</span>
+        </div>
+        <div class="hr"></div>
+        <label class="hint" for="colors">Código (6 colores)</label>
+        <input id="colors" name="colors" placeholder="rojo-azul-blanco-verde-amarillo-negro" />
+        <div class="row" style="margin-top:12px;">
+          <button class="primary" data-check>Comprobar</button>
+          <span class="hint">${solveHint}</span>
+        </div>
+        <div class="msg">⚠️ En clase, antes de comprobar, el portavoz debe justificar cada color.</div>
+      `;
+    }
+
+    if(step === 7){
+      return `
+        <div class="q">¿A qué te dedicas?</div>
+        <div class="hint">
+          En el escritorio solo hay una carpeta: <b>TRABAJO</b>. Dentro aparecen subcarpetas con nombres abreviados
+          (borradores, entrevistas, reportajes, hechos, archivos…).<br><br>
+          <b>Consigna (B2):</b> deducid la profesión.
+        </div>
+        <div class="hr"></div>
+        <label class="hint" for="job">Profesión</label>
+        <input id="job" name="job" placeholder="Ej.: investigadora" />
+        <div class="row" style="margin-top:12px;">
+          <button class="primary" data-check>Comprobar</button>
+          <span class="hint">${solveHint}</span>
+        </div>
+        <div class="msg">Pista: implica investigar, identidad secreta, doble vida.</div>
+      `;
+    }
+
+    if(step === 8){
+      return `
+        <div class="q">Anagramas del caso</div>
+        <div class="hint">
+          Resuelve los anagramas para comprender las circunstancias del escándalo.<br>
+          <b>Consigna (B2):</b> escribe en líneas separadas las soluciones (mínimo 8 correctas).
+        </div>
+        <div class="hr"></div>
+        <label class="hint" for="anagrams">Soluciones (una por línea)</label>
+        <textarea id="anagrams" name="anagrams" placeholder="Ej.: corrupción&#10;gobierno&#10;..."></textarea>
+        <div class="row" style="margin-top:12px;">
+          <button class="primary" data-check>Comprobar</button>
+          <span class="hint">${solveHint}</span>
+        </div>
+        <div class="msg">Se corrige de forma flexible: 8/10 para nivel B2.</div>
+      `;
+    }
+
+    if(step === 9){
+      return `
+        <div class="q">SMS en la pantalla rota</div>
+        <div class="hint">
+          Encuentras un SMS legible a duras penas.<br>
+          <b>Consigna (B2):</b> reconstruye el mensaje completo (3 frases).
+        </div>
+        <div class="hr"></div>
+        <label class="hint" for="sms">Mensaje (3 frases)</label>
+        <textarea id="sms" name="sms" placeholder="Escribe el mensaje completo con puntos."></textarea>
+        <div class="row" style="margin-top:12px;">
+          <button class="primary" data-check>Comprobar</button>
+          <span class="hint">${solveHint}</span>
+        </div>
+        <div class="msg">Pista: te advierte de que no publiques y de que quieren detenerte.</div>
+      `;
+    }
+
+    if(step === 10){
+      return `
+        <div class="q">La salida</div>
+        <div class="hint">
+          ${CONFIG.hints.e10}<br><br>
+          <b>Consigna (B2):</b> escribe el mensaje oculto que indica dónde está la llave.
+        </div>
+        <div class="hr"></div>
+        <label class="hint" for="final">Mensaje oculto</label>
+        <input id="final" name="final" placeholder="Ej.: La llave está en..." />
+        <div class="row" style="margin-top:12px;">
+          <button class="primary" data-check>Comprobar</button>
+          <span class="hint">${solveHint}</span>
+        </div>
+        <div class="msg">Al acertar, habréis completado el escape. Condición de victoria: 6/10 o más.</div>
+      `;
+    }
+    return `<div class="msg">Enigma no disponible.</div>`;
+  }
+
+  function renderAll(){
+    renderChips();
+    updateTop();
+    renderStep();
+    renderTeacher();
+  }
+
+  // =========================
+  // CONTROLES
+  // =========================
+  $("btnPrev").addEventListener("click", () => {
+    state.step = Math.max(1, state.step - 1);
+    saveState(); renderAll();
+  });
+
+  $("btnNext").addEventListener("click", () => {
+    if(!state.solved[state.step-1]) return;
+    state.step = Math.min(10, state.step + 1);
+    saveState(); renderAll();
+  });
+
+  $("btnReset").addEventListener("click", () => {
+    if(!confirm("¿Reiniciar progreso y respuestas guardadas?")) return;
+    localStorage.removeItem(LS_KEY);
+    location.reload();
+  });
+
+  $("btnTeacher").addEventListener("click", () => {
+    const box = $("teacherBox");
+    box.open = !box.open;
+    box.scrollIntoView({behavior:"smooth", block:"nearest"});
+  });
+
+  // Init
+  renderAll();
+</script>
+</body>
+</html>
